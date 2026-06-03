@@ -16,6 +16,10 @@ builder.Services.AddDbContext<EventsDbContext>(options =>
 
 var app = builder.Build();
 
+await DatabaseInitializer.InitializeAsync<EventsDbContext>(
+    app.Services,
+    async db => await DbSeeder.SeedAsync(db));
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
