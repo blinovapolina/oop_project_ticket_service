@@ -11,6 +11,13 @@ var postgresConnection =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Host=localhost;Port=5432;Database=events_db;Username=ticketuser;Password=ticketpass";
 
+
+var redisConnection = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = redisConnection;
+});
+
 builder.Services.AddDbContext<EventsDbContext>(options =>
     options.UseNpgsql(postgresConnection));
 
