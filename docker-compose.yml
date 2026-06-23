@@ -1,0 +1,71 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ticket-postgres
+    environment:
+      POSTGRES_USER: ticketuser
+      POSTGRES_PASSWORD: ticketpass
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ticketuser -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: ticket-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  events-service:
+    build:
+      context: .
+      dockerfile: src/EventsService/Dockerfile
+    container_name: ticket-events-service
+    ports:
+      - "5001:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=events_db;Username=ticketuser;Password=ticketpass
+      ConnectionStrings__Redis: redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+
+  booking-service:
+    build:
+      context: .
+      dockerfile: src/BookingService/Dockerfile
+    container_name: ticket-booking-service
+    ports:
+      - "5002:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=bookings_db;Username=ticketuser;Password=ticketpass
+      ConnectionStrings__Redis: redis:6379
+      EventsService__BaseUrl: http://events-service:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      events-service:
+        condition: service_started
+    restart: on-failure
+
+volumes:
+  postgres_data:

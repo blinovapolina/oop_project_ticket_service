@@ -1,0 +1,11 @@
+**/.git
+**/.vs
+**/.idea
+**/bin
+**/obj
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/node_modules
+*.md
+!README.md
