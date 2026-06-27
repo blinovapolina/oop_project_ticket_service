@@ -19,7 +19,7 @@ EventsService → Redis (cache published events)
 BookingService → Redis (sorted set for booking TTL)
 ```
 
-## Требования
+## Рекомендуется
 
 * [Docker Desktop](https://www.docker.com/products/docker-desktop/) (рекомендуется)
 * Или .NET 9 SDK + Docker только для инфраструктуры
@@ -143,7 +143,3 @@ OOP_project/
 │   └── BookingService/
 └── README.md
 ```
-
-## Лицензия
-
-Учебный проект по курсу ООП (Backboost 2026).
