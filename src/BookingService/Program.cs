@@ -5,12 +5,55 @@ using BookingService.PaymentMock;
 using BookingService.Services;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("X-User-Id", new OpenApiSecurityScheme
+    {
+        Name = "X-User-Id",
+        Type = SecuritySchemeType.ApiKey,
+        In = ParameterLocation.Header,
+        Description = "User ID for authentication (e.g., 33333333-3333-3333-3333-333333333333)"
+    });
+
+    c.AddSecurityDefinition("X-Mock-Payment", new OpenApiSecurityScheme
+    {
+        Name = "X-Mock-Payment",
+        Type = SecuritySchemeType.ApiKey,
+        In = ParameterLocation.Header,
+        Description = "Mock payment mode: 'success' (default) or 'fail'"
+    });
+
+    c.AddSecurityDefinition("X-User-Role", new OpenApiSecurityScheme
+    {
+        Name = "X-User-Role",
+        Type = SecuritySchemeType.ApiKey,
+        In = ParameterLocation.Header,
+        Description = "User role: 'Admin' for admin endpoints"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "X-User-Id"
+                }
+            },
+            new List<string>()
+        }
+    });
+});
+
 
 var postgresConnection = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Host=localhost;Port=5432;Database=bookings_db;Username=ticketuser;Password=ticketpass";
